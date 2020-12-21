@@ -46,3 +46,6 @@ class Plaza:
     def reservado(self, nuevo):
         self.__reservado = nuevo
 
+    def estado_plazas(self):
+        return "Id de plaza "+ str(self.__id)+ ", Esta ocupado: "+ str(self.__ocupado)+ ", Esta reservado: "+ str(self.__reservado)
+

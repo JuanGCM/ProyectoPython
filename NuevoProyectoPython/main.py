@@ -8,6 +8,7 @@ from ticket import Ticket
 from ticketabonado import TicketAbonado
 from plaza import Plaza
 from usuario import Usuario
+from factura import Factura
 
 
 def aleatorio(a, b):
@@ -175,7 +176,7 @@ def opcionDepositaVehiculo():
     ventanaDeposita = tkinter.Tk()
     ventanaDeposita.geometry("500x400")
 
-    pregunta1 = tkinter.Label(ventanaDeposita, text="Ingresa la matricula:")
+    pregunta1 = tkinter.Label(ventanaDeposita, text="Ingresa la matricula: ")
     matricula = tkinter.Entry(ventanaDeposita)
     pregunta2 = tkinter.Label(ventanaDeposita, text="Ingresa el tipo (turismo,motocicleta,caravana): ")
     tipo = tkinter.Entry(ventanaDeposita)
@@ -189,15 +190,78 @@ def opcionDepositaVehiculo():
 
     ventanaDeposita.mainloop()
 
+#El sistema informa de los abonos anuales, con los cobros realizados.
+#Agregar los nuevos usuarios que ya pagaron el parking y los nuevos tickets
+
+def opcionAbonados(usuarios,facturas):
+    ventanaAbonados = tkinter.Tk()
+    ventanaAbonados.geometry("500x400")
+
+    for i in facturas:
+        for j in usuarios:
+            if i.dni == j.dni:
+                labelabonados = tkinter.Label(ventanaAbonados, text="Abonado: " + j.nombre+", " + j.apellidos + ", Pago: " + str(i.pago))
+                labelabonados.pack()
+
+    ventanaAbonados.mainloop()
+
+#Entre fechas. El sistema solicita dos fechas y horas concretas para saber
+# los cobros realizados entre las mismas. Los abonos no se contemplan en esta opción.
+
+
+def facturacion(fecha1,fecha2, facturas):
+
+    lista1 = fecha1.split('/')
+    lista2 = fecha2.split('/')
+
+    print(f"Cobros realizados entre: {fecha1} y {fecha2}: ")
+    for i in facturas:
+        lista = str(i.fecha_pago).split('/')
+        if int(lista[0]) >= int(lista1[0]) and int(lista[0]) <= int(lista2[0]):
+            print(f"Fecha: {i.fecha_pago}, Pago: {i.pago}")
+
+
+def opcionFacturacion():
+    ventanaFactura = tkinter.Tk()
+    ventanaFactura.geometry("500x400")
+
+    pregunta1 = tkinter.Label(ventanaFactura, text="Ingresa primera fecha(DD/MM/YYYY): ")
+    fecha1 = tkinter.Entry(ventanaFactura)
+    pregunta2 = tkinter.Label(ventanaFactura, text="Ingresa segunda fecha(DD/MM/YYYY): ")
+    fecha2 = tkinter.Entry(ventanaFactura)
+    boton = tkinter.Button(ventanaFactura, text="Enviar", command=lambda: facturacion(fecha1.get(), fecha2.get(), facturas))
+    pregunta1.pack()
+    fecha1.pack()
+    pregunta2.pack()
+    fecha2.pack()
+    boton.pack()
+
+    ventanaFactura.mainloop()
+
+#Controlar el estado del parking. Se debe mostrar por pantalla el estado de las plazas
+# (libre, ocupada, abono ocupada y abono libre) y el identificador de cada plaza.
+
+
+def opcionEstadoParking(plazas):
+
+    ventanaEstPark = tkinter.Tk()
+    ventanaEstPark.geometry("500x400")
+
+    for i in plazas:
+        estadoPlaza = tkinter.Label(ventanaEstPark, text=i.estado_plazas())
+        estadoPlaza.pack()
+
+    ventanaEstPark.mainloop()
+
 
 def menuAdmin():
     ventanaAdmin = tkinter.Tk()
     ventanaAdmin.geometry("500x400")
 
     menu = tkinter.Label(ventanaAdmin, text="¿Que deseas consultar?")
-    opcion1 = tkinter.Button(ventanaAdmin, text="Estado del Parking")
-    opcion2 = tkinter.Button(ventanaAdmin, text="Facturación")
-    opcion3 = tkinter.Button(ventanaAdmin, text="Abonados")
+    opcion1 = tkinter.Button(ventanaAdmin, text="Estado del Parking", command=lambda: opcionEstadoParking(plazas))
+    opcion2 = tkinter.Button(ventanaAdmin, text="Facturación", command=lambda: opcionFacturacion())
+    opcion3 = tkinter.Button(ventanaAdmin, text="Abonados", command=lambda: opcionAbonados(usuarios, facturas))
     opcion4 = tkinter.Button(ventanaAdmin, text="Abonos")
     opcion5 = tkinter.Button(ventanaAdmin, text="Caducidad de Abonos")
 
@@ -247,7 +311,7 @@ def menulogin(email,contra):
     esAbonado = True
     pin = 0
     dni = ""
-    matri =""
+    matri = ""
     nombre = ""
 
     for i in usuarios:
@@ -274,6 +338,16 @@ def menulogin(email,contra):
             print(f"Bienvenido administrador {nombre}")
             menuAdmin()
 
+#facturas = [
+#    Factura("21/12/2020", "55266677h", 0),
+#    Factura("22/12/2020", "26699005x", 0),
+#    Factura("22/12/2020", "21004875u", 0),
+#    Factura("21/12/2020", "66984558q", 0)]
+
+
+fichFact = open("listado_factura","rb")
+facturas = pickle.load(fichFact)
+fichFact.close()
 
 ficheroPark = open("lista_parking","rb")
 parkins = pickle.load(ficheroPark)
