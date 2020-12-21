@@ -18,27 +18,31 @@ def aleatorio(a, b):
 def retiraVehiculoAbo(matricula, pin, idplaza, plazas, tickets_abonados):
 
     cont = 0
+    try:
+        for i in plazas:
+            if i.matricula == matricula:
+                i.ocupado = False
 
-    for i in plazas:
-        if i.matricula == matricula:
-            i.ocupado = False
-
-    for j in tickets_abonados:
-        if j.pin == int(pin) and j.idplaza == int(idplaza):
-            del tickets_abonados[cont]
-            print("El vehiculo se ha retirado del parking...")
-        cont += 1
+        for j in tickets_abonados:
+            if j.pin == int(pin) and j.idplaza == int(idplaza):
+                del tickets_abonados[cont]
+                print("El vehiculo se ha retirado del parking...")
+            cont += 1
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
 
 def depositarVehiculoAbo(matricula, dni, plazas, tickets_abonados):
 
     dt = datetime.now()
-
-    for i in plazas:
-        if i.matricula == matricula:
-            i.ocupado = True
-            tickets_abonados += [TicketAbonado("{}/{}/{}".format(dt.day, dt.month, dt.year),"",matricula,i.tipo,i.id, aleatorio(100000, 999999), 90,dni)]
-            print("El montacargas esta llevando el vehiculo a su plaza asignada...")
+    try:
+        for i in plazas:
+            if i.matricula == matricula:
+                i.ocupado = True
+                tickets_abonados += [TicketAbonado("{}/{}/{}".format(dt.day, dt.month, dt.year),"",matricula,i.tipo,i.id, aleatorio(100000, 999999), 90,dni)]
+                print("El montacargas esta llevando el vehiculo a su plaza asignada...")
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
 
 def retiraVehiculo(matricula, idplaza, pin, plazas, tickets, parkins):
@@ -60,39 +64,47 @@ def retiraVehiculo(matricula, idplaza, pin, plazas, tickets, parkins):
     print("La tarifa es de ", coste, "€ por minuto.")
     print("Acabas de pagar ", total, "€ por retirar el vehiculo.")
 
-    for i in parkins:
-        for j in tickets:
-            if i.tipo == j.tipo:
-                if j.pin == int(pin):
-                    i.nplaza += 1
-                    #pago += [Pagos("{}/{}/{}".format(dt.day, dt.month, dt.year), round(monto * 100) / 100)]
-    cont = 0
+    try:
 
-    for k in plazas:
-        if k.matricula == matricula and k.id == int(idplaza):
-            del plazas[cont]
-            print("El vehiculo se ha retirado del parking...")
-        cont += 1
+        for i in parkins:
+            for j in tickets:
+                if i.tipo == j.tipo:
+                    if j.pin == int(pin):
+                        i.nplaza += 1
+                        
+        cont = 0
 
-    for i in parkins:
-        print(i.nplaza,i.tipo)
+        for k in plazas:
+            if k.matricula == matricula and k.id == int(idplaza):
+                del plazas[cont]
+                print("El vehiculo se ha retirado del parking...")
+            cont += 1
+
+        for j in parkins:
+            print(j.numero_plazas())
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
 
 def depositarVehiculo(matricula, tipo, plazas, tickets):
 
     dt = datetime.now()
-    for i in parkins:
-        if i.tipo == tipo:
-            if i.nplaza > 0:
-                print("El montacargas esta llevando el vehiculo a su plaza...")
-                plazas += [Plaza(len(plazas)+1,tipo,matricula,True,False)]
-                tickets += [Ticket("{}/{}/{}".format(dt.day, dt.month, dt.year),"",matricula,tipo,len(plazas), aleatorio(100000, 999999), i.tarifa)]
-                i.nplaza -= 1
-            else:
-                print("Ya no quedan plazas en el parking de " + i.tipo)
-                break
-    for j in parkins:
-        print(j.numero_plazas())
+    try:
+
+        for i in parkins:
+            if i.tipo == tipo:
+                if i.nplaza > 0:
+                    print("El montacargas esta llevando el vehiculo a su plaza...")
+                    plazas += [Plaza(len(plazas)+1,tipo,matricula,True,False)]
+                    tickets += [Ticket("{}/{}/{}".format(dt.day, dt.month, dt.year),"",matricula,tipo,len(plazas), aleatorio(100000, 999999), i.tarifa)]
+                    i.nplaza -= 1
+                else:
+                    print("Ya no quedan plazas en el parking de " + i.tipo)
+                    break
+        for j in parkins:
+            print(j.numero_plazas())
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
 
 def opcionRetiraVehiculoAbonado(matri, pin, plazas):
@@ -146,10 +158,10 @@ def opcionDepositaVehiculoAbonado(dni, matri):
     ventanaDepoAbo.mainloop()
 
 
-def opcionRetiraVehiculo(pin):
+def opcionRetiraVehiculo(pin, tickets):
 
     for i in tickets:
-        print(i.info(pin))
+        i.info(pin)
 
     ventanaRetira = tkinter.Tk()
     ventanaRetira.geometry("500x400")
@@ -193,15 +205,19 @@ def opcionDepositaVehiculo():
 #El sistema informa de los abonos anuales, con los cobros realizados.
 #Agregar los nuevos usuarios que ya pagaron el parking y los nuevos tickets
 
+
 def opcionAbonados(usuarios,facturas):
     ventanaAbonados = tkinter.Tk()
     ventanaAbonados.geometry("500x400")
 
-    for i in facturas:
-        for j in usuarios:
-            if i.dni == j.dni:
-                labelabonados = tkinter.Label(ventanaAbonados, text="Abonado: " + j.nombre+", " + j.apellidos + ", Pago: " + str(i.pago))
-                labelabonados.pack()
+    try:
+        for i in facturas:
+            for j in usuarios:
+                if i.dni == j.dni and j.tipo_abono == "anual":
+                    labelabonados = tkinter.Label(ventanaAbonados, text="Abonado: " + j.nombre+" " + j.apellidos + ", Pago: " + str(i.pago))
+                    labelabonados.pack()
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
     ventanaAbonados.mainloop()
 
@@ -215,10 +231,13 @@ def facturacion(fecha1,fecha2, facturas):
     lista2 = fecha2.split('/')
 
     print(f"Cobros realizados entre: {fecha1} y {fecha2}: ")
-    for i in facturas:
-        lista = str(i.fecha_pago).split('/')
-        if int(lista[0]) >= int(lista1[0]) and int(lista[0]) <= int(lista2[0]):
-            print(f"Fecha: {i.fecha_pago}, Pago: {i.pago}")
+    try:
+        for i in facturas:
+            lista = str(i.fecha_pago).split('/')
+            if int(lista[0]) >= int(lista1[0]) and int(lista[0]) <= int(lista2[0]):
+                print(f"Fecha: {i.fecha_pago}, Pago: {i.pago}")
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
 
 def opcionFacturacion():
@@ -289,7 +308,7 @@ def menuCliente(esabonado, pin, dni, matri):
             opcion1 = tkinter.Button(ventanaMenu, text="Depositar Vehiculo", command=lambda: opcionDepositaVehiculo())
             opcion1.pack()
         else:
-            opcion2 = tkinter.Button(ventanaMenu, text="Retirar Vehiculo", command=lambda: opcionRetiraVehiculo(pin))
+            opcion2 = tkinter.Button(ventanaMenu, text="Retirar Vehiculo", command=lambda: opcionRetiraVehiculo(pin, tickets))
             opcion2.pack()
 
     else:
@@ -314,18 +333,22 @@ def menulogin(email,contra):
     matri = ""
     nombre = ""
 
-    for i in usuarios:
-        if email == i.email:
-            if contra == i.contrasena:
-                nombre = i.nombre
-                pin = i.pin
-                dni = i.dni
-                matri = i.matri_vehiculo
-                esOk = False
-                if i.esAdmin:
-                    esAdmin = False
-                elif i.esAbonado:
-                    esAbonado = False
+    try:
+
+        for i in usuarios:
+            if email == i.email:
+                if contra == i.contrasena:
+                    nombre = i.nombre
+                    pin = i.pin
+                    dni = i.dni
+                    matri = i.matri_vehiculo
+                    esOk = False
+                    if i.esAdmin:
+                        esAdmin = False
+                    elif i.esAbonado:
+                        esAbonado = False
+    except KeyError:
+        print('Esta clave no existe, ingresa una clave que exista')
 
     if esOk:
         return print("Email o Contraseña incorrecta")
@@ -337,12 +360,6 @@ def menulogin(email,contra):
         else:
             print(f"Bienvenido administrador {nombre}")
             menuAdmin()
-
-#facturas = [
-#    Factura("21/12/2020", "55266677h", 0),
-#    Factura("22/12/2020", "26699005x", 0),
-#    Factura("22/12/2020", "21004875u", 0),
-#    Factura("21/12/2020", "66984558q", 0)]
 
 
 fichFact = open("listado_factura","rb")
